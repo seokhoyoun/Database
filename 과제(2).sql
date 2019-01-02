@@ -1,8 +1,8 @@
-SELECT DEPARTMENT_NAME "ΗΠ°ϊ Έν",
-       CATEGORY "°θΏ­"
+ο»ΏSELECT DEPARTMENT_NAME "ν•™κ³Ό λª…",
+       CATEGORY "κ³„μ—΄"
 FROM TB_DEPARTMENT;
 
-SELECT DEPARTMENT_NAME || 'ΐΗ Α¤ΏψΐΊ '|| CAPACITY || 'Έν ΐΤ΄Ο΄Ω.' AS "ΗΠ°ϊΊ° Α¤Ώψ"
+SELECT DEPARTMENT_NAME || 'μ μ •μ›μ€ '|| CAPACITY || 'λª… μ…λ‹λ‹¤.' AS "ν•™κ³Όλ³„ μ •μ›"
 FROM TB_DEPARTMENT;
 
 SELECT STUDENT_NAME
@@ -37,5 +37,5 @@ ORDER BY CATEGORY ASC;
 SELECT STUDENT_NO, STUDENT_NAME, STUDENT_SSN
 FROM TB_STUDENT
 WHERE (ENTRANCE_DATE BETWEEN '02/01/01' AND '02/12/31') 
-AND (absence_yn = 'N' ) AND STUDENT_ADDRESS LIKE 'ΐόΑΦ%';
+AND (absence_yn = 'N' ) AND STUDENT_ADDRESS LIKE 'μ „μ£Ό%';
 
