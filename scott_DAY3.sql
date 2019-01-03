@@ -68,9 +68,9 @@ ORDER BY SAL DESC;
 
 -- EMP 테이블로 부터 사원번호가 홀수인 사원들을 조회
 
-SELECT EMPNO
+SELECT EMPNO, ENAME
 FROM EMP
-WHERE EMPNO
+WHERE MOD(EMPNO,2) = 1;
 
 
 /* 문자 처리 함수*/  
@@ -78,36 +78,58 @@ WHERE EMPNO
 -- EMP 테이블로 부터 사원명, 입사일 조회
 -- 단, 입사일은 년도와 월을 분리 추출해서 출력
 
+SELECT ENAME, TO_CHAR(HIREDATE,'YYYY-MM')
+FROM EMP;
 
 -- EMP 테이블로 부터 9월에 입사한 직원의 정보 조회
 
+SELECT ENAME, HIREDATE
+FROM EMP
+WHERE TO_CHAR(HIREDATE,'MM') = '09';
 
 -- EMP 테이블로 부터 '81'년도에 입사한 직원 조회
 
+SELECT ENAME, HIREDATE
+FROM EMP
+WHERE TO_CHAR(HIREDATE,'RR') = '81';
 
 -- EMP 테이블로 부터 이름이 'E'로 끝나는 직원 조회
 
-
+SELECT ENAME
+FROM EMP
+WHERE ENAME LIKE '%E';
 
 -- emp 테이블로 부터 이름의 세번째 글자가 'R'인 직원의 정보 조회
 -- LIKE 연산자를 사용
 
+SELECT ENAME
+FROM EMP
+WHERE ENAME LIKE '__R%';
 
 -- SUBSTR() 함수 사용
 
-
+SELECT ENAME
+FROM EMP
+WHERE SUBSTR(ENAME,3,1) = 'R';
 
 
 
 /************ 날짜 처리 함수 **************/
 
 -- 입사일로 부터 40년 되는 날짜 조회
-     
 
--- 입사일로 부터 33년 이상 근무한 직원의 정보 조회
+SELECT ADD_MONTHS(HIREDATE,40*12)
+FROM EMP;
 
+-- 입사일로 부터 38년 이상 근무한 직원의 정보 조회
+
+SELECT ENAME, HIREDATE, SYSDATE
+FROM EMP
+WHERE MONTHS_BETWEEN(SYSDATE,HIREDATE)/12 > 38;
 
 -- 오늘 날짜에서 년도만 추출
 
+SELECT TO_CHAR(SYSDATE,'RRRR')
+FROM DUAL;
 
 
