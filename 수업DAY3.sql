@@ -398,7 +398,10 @@ FROM EMPLOYEE;
 --     ㅇㅇ년 ㅇㅇ월 ㅇㅇ일로 출력되게 함.
 --  나이는 주민번호에서 추출해서 날짜데이터로 변환한 다음, 계산함
 
-SELECT EMP_NAME, DEPT_ID, TO_CHAR(TO_DATE(SUBSTR,1,6))
+SELECT EMP_NAME 직원명, DEPT_ID 부서코드, TO_CHAR(TO_DATE((SUBSTR(EMP_NO,1,6)),'RRMMDD'),'RR"년 "MM"월 "DD"일"') 생년월일,
+        FLOOR(MONTHS_BETWEEN(SYSDATE, TO_DATE(SUBSTR(EMP_NO,1,6),'RRMMDD'))/12) "나이(만)"
+FROM EMPLOYEE
+WHERE SUBSTR(EMP_NO,5,6) <= '31';
 
 --6. 직원들의 입사일로 부터 년도만 가지고, 각 년도별 입사인원수를 구하시오.
 --  아래의 년도에 입사한 인원수를 조회하시오.
@@ -407,14 +410,33 @@ SELECT EMP_NAME, DEPT_ID, TO_CHAR(TO_DATE(SUBSTR,1,6))
 --	-------------------------------------------------------------
 --	전체직원수   2001년   2002년   2003년   2004년
 --	-------------------------------------------------------------
---
---
+
+SELECT COUNT(EMP_NAME) 전체직원수,
+        COUNT(DECODE(TO_CHAR(HIRE_DATE,'RRRR'),
+                '2001', 1))
+FROM EMPLOYEE;
+
+SELECT COUNT(EMP_NAME) 전체직원수,
+        SUM(DECODE(TO_CHAR(HIRE_DATE,'RRRR'),'2001', 1)) "2001년",
+        SUM(DECODE(TO_CHAR(HIRE_DATE,'RRRR'),'2002', 1)) "2002년",
+        SUM(DECODE(TO_CHAR(HIRE_DATE,'RRRR'),'2003', 1)) "2003년",
+        SUM(DECODE(TO_CHAR(HIRE_DATE,'RRRR'),'2004', 1)) "2004년"
+FROM EMPLOYEE;
+
 --7.  부서코드가 50이면 총무부, 60이면 기획부, 90이면 영업부로 처리하시오.
 --   단, 부서코드가 50, 60, 90 인 직원의 정보만 조회함
 --  => case 사용
 --	부서코드 기준 오름차순 정렬함.
 
-
+SELECT EMP_NAME, DEPT_ID,
+        CASE DEPT_ID
+        WHEN '50' THEN '총무부'
+        WHEN '60' THEN '기획부'
+        WHEN '90' THEN '영업부'
+        END 부서코드
+FROM EMPLOYEE
+WHERE DEPT_ID IN('50','60','90')
+ORDER BY DEPT_ID;
 
 
 
