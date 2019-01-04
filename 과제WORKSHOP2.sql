@@ -79,6 +79,16 @@ WHERE ABSENCE_YN = 'Y'
 GROUP BY DEPARTMENT_NO
 ORDER BY DEPARTMENT_NO;
 
+--13
+SELECT DISTINCT DEPARTMENT_NO 학과코드, SUM(CASE ABSENCE_YN
+                                                                             WHEN 'Y' THEN 1
+                                                                             WHEN 'N' THEN 0
+                                                                             END) 인원수
+FROM TB_STUDENT
+GROUP BY DEPARTMENT_NO
+ORDER BY DEPARTMENT_NO;
+
+
 --14
 SELECT STUDENT_NAME 동일이름, COUNT(STUDENT_NAME) "동명인 수" 
 FROM TB_STUDENT
@@ -86,12 +96,11 @@ GROUP BY STUDENT_NAME
 HAVING COUNT(STUDENT_NAME) > 1
 ORDER BY STUDENT_NAME;
 
---15 수정중
-SELECT SUBSTR(TERM_NO,1,4), DECODE(SUBSTR(TERM_NO,5,2), 1,' ')
-FROM TB_GRADE
-WHERE STUDENT_NO = 'A112113'
-GROUP BY SUBSTR(TERM_NO,1,4), DECODE(SUBSTR(TERM_NO,5,2),1,1, ' ')                                         
-ORDER BY SUBSTR(TERM_NO,1,4), SUBSTR(TERM_NO,5,2);
+--15 
+SELECT  NVL(SUBSTR(TERM_NO,1,4),' ') 연도, NVL(SUBSTR(TERM_NO,5,2),' ') 학기, ROUND(AVG(POINT),1) 평점
+FROM   TB_GRADE
+WHERE  STUDENT_NO = 'A112113'
+GROUP BY ROLLUP(SUBSTR(TERM_NO,1,4), SUBSTR(TERM_NO,5,2)) ;               
 
 
 
