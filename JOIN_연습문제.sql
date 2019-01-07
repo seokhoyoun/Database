@@ -93,16 +93,33 @@ WHERE   COUNTRY_ID IN('KO','JP');
 
 --10. 같은 부서에 근무하는 직원들의 사원명, 부서코드, 동료이름을 조회하시오.
 --self join 사용
-SELECT   E1.EMP_NAME,
-             E1.DEPT_ID,         
-             E2.EMP_NAME
-FROM    EMPLOYEE E1
-JOIN EMPLOYEE E2 ON (E1.MGR_ID = E2.EMP_ID)
+SELECT   E.EMP_NAME,
+             E.DEPT_ID,         
+             C.EMP_NAME
+FROM    EMPLOYEE E
+JOIN    EMPLOYEE C ON (E.DEPT_ID = C.DEPT_ID)
+WHERE   E.EMP_NAME <> C.EMP_NAME
 ORDER BY 2;
 
 
 --11. 보너스포인트가 없는 직원들 중에서 직급코드가 J4와 J7인 직원들의 사원명, 직급명, 급여를 조회하시오.
 --단, join과 IN 사용할 것
---
---
+
+SELECT  EMP_NAME,
+        JOB_TITLE,
+        SALARY
+FROM    EMPLOYEE E
+JOIN    JOB J ON (E.JOB_ID = J.JOB_ID)
+WHERE   (E.BONUS_PCT IS NULL OR e.bonus_pct = 0) AND E.JOB_ID IN ('J4','J7');
+
 --12. 기혼인 직원과 미혼인 직원의 수를 조회하시오.
+SELECT  CASE MARRIAGE
+        WHEN 'Y' THEN '기혼'
+        ELSE  '미혼'
+        END AS 결혼여부,
+        COUNT(*) 직원수
+FROM    EMPLOYEE
+GROUP BY CASE MARRIAGE
+        WHEN 'Y' THEN '기혼'
+        ELSE  '미혼'
+        END
