@@ -126,6 +126,59 @@ SELECT
 FROM    EMPLOYEE
 FULL      JOIN DEPARTMENT USING (DEPT_ID);
 
+-- NATURAL [INNER] JOIN
+-- 연결할 테이블의 기본키(PRIMARY KEY)로 설정된 컬럼을 사용해서 조인됨
+SELECT  *
+FROM    EMPLOYEE
+NATURAL JOIN DEPARTMENT;
+--DEPARTMENT의 기본키 컬럼이 DEPT_ID를 사용해서 조인됨
+
+-- NON EQUAL JOIN *********************************************
+-- 지정하는 컬럼의 값이 일치하는 행들을 조인하는 경우가 아닌 조인.
+
+-- CROSS JOIN
+-- 두 테이블을 연결할 컬럼이 없는 경우에사용함.
+
+-- 오라클 전용
+SELECT      *
+FROM        LOCATION, COUNTRY;
+
+-- ANSI 표준
+SELECT      *
+FROM        LOCATION
+CROSS   JOIN COUNTRY;
+
+-- NON-EQU JOIN
+-- 연결하는 테이블의 컬럼값을 범위로 해서 조인할 수도 있음
+SELECT  *
+FROM    EMPLOYEE
+JOIN SAL_GRADE ON (SALARY BETWEEN LOWEST AND HIGHEST); 
+
+-- SELF JOIN
+-- 같은 테이블을 두번 조인하는경우
+-- 같은 테이블 안의 다른 컬럼을 외부 참조키(F)로 사용하고있는 경우에 셀프조인 사용가능
+SELECT  *
+FROM EMPLOYEE E
+JOIN EMPLOYEE M ON (E.MGR_ID = M.EMP_ID);
+
+SELECT  *
+FROM EMPLOYEE E
+WHERE MGR_ID IS NOT NULL;
+
+-- 직원 이름과 그 직원의 관리자 이름 조회
+SELECT      E.EMP_NAME 직원이름,
+                M.EMP_NAME 관리자이름
+FROM    EMPLOYEE E
+JOIN EMPLOYEE M ON (E.MGR_ID = M.EMP_ID);
+
+-- N개의 테이블 조인
+-- 테이블간의 관계(RELATIONSHIP)를 고려해서 순서를 정해야 한다.
+SELECT EMP_NAME, JOB_TITLE, DEPT_NAME, LOC_DESCRIBE, COUNTRY_NAME
+FROM EMPLOYEE
+JOIN JOB USING (JOB_ID)
+JOIN DEPARTMENT USING (DEPT_ID)
+JOIN LOCATION ON (LOC_ID = LOCATION_ID)
+JOIN COUNTRY USING (COUNTRY_ID);
 
 
 
