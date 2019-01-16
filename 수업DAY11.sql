@@ -282,6 +282,20 @@ SELECT * FROM DCOPY;
 -- WHERE 컬럼명 비교연산자 (서브쿼리)
 
 -- 심하균의 직급코드와 급여를 성해교 직원과 같은 값으로 변경하시오.
+CREATE TABLE ECOPY
+AS
+SELECT * FROM EMPLOYEE;
+
+SELECT * FROM ECOPY;
+
+UPDATE	ECOPY
+SET		(JOB_ID,SALARY) = 	(
+				SELECT	JOB_ID, SALARY
+				FROM		ECOPY
+				WHERE	EMP_NAME = '성해교'
+				)
+WHERE	EMP_NAME = '심하균';				
+
 UPDATE EMPLOYEE
 SET JOB_ID = (SELECT JOB_ID FROM EMPLOYEE
                WHERE EMP_NAME = '성해교'),
@@ -319,6 +333,15 @@ ROLLBACK;
 -- WHERE 절에서도 서브쿼리 사용할 수 있음
 
 -- 해외영업2팀 직원들의 보너스포인트를 0.3으로 변경하시오.
+UPDATE	EMPLOYEE
+SET		BONUS_PCT = 0.3
+WHERE	DEPT_ID = 	(
+				SELECT	DEPT_ID
+				FROM		DEPARTMENT
+				WHERE	DEPT_NAME = '해외영업2팀'
+				);
+
+
 UPDATE EMPLOYEE
 SET BONUS_PCT = 0.3
 WHERE DEPT_ID = (SELECT DEPT_ID FROM DEPARTMENT

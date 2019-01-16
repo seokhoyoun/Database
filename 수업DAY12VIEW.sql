@@ -1,0 +1,244 @@
+-- VIEW (뷰)
+/*
+SELECT 쿼리의 실행 결과를 보여주는 화면
+결과화면을 가상의 테이블처럼 저장해 두고 사용할 수 있음.
+마치 결과 화면을 사진 찍어서 보관한다는 개념의 객체.
+
+사용목적 : 
+1. 보안에 유리 : 보관된 결과 화면만 보여 줌으로써 쿼리문을 안 보이게 함
+2. 복잡하고 긴 쿼리문을 뷰를 통해 봄으로써 매번 쿼리문을 실행시키지 않아도 됨
+*/
+
+-- 사용 형식
+/*
+CREATE [OR REPLACE] [FORCE | NOFORCE(기본값임)] VIEW 뷰이름
+AS 서브쿼리
+[WITH CHECK OPTION [CONSTRAINT 이름]]
+[WITH READ ONLY [CONSTRAINT 이름]];
+*/
+
+-- 관리자 계정에서 권한을 부여받음
+GRANT CREATE VIEW TO student;
+
+-- 뷰 생성
+-- 90 번 부서에 소속된 직원 정보 조회해서 뷰에 저장
+-- 이름, 부서명, 직급명, 급여 조회
+-- 뷰 이름 : V_EMP_DEPT90
+CREATE VIEW V_EMP_DEPT90
+AS
+SELECT EMP_NAME, DEPT_NAME, JOB_TITLE, SALARY
+FROM EMPLOYEE
+LEFT JOIN JOB USING (JOB_ID)
+LEFT JOIN DEPARTMENT USING (DEPT_ID)
+WHERE DEPT_ID = '90';
+
+-- 뷰 실행 확인
+SELECT * FROM V_EMP_DEPT90;
+
+-- 딕셔너리 확인 : USER_VIEWS, USER_OBJECTS, USER_CATALOG
+DESC USER_VIEWS;
+
+SELECT VIEW_NAME, TEXT_LENGTH, TEXT, READ_ONLY
+FROM USER_VIEWS;
+
+-- 뷰는 수정기능이 없음 : ALTER VIEW 
+-- OR REPLACE 사용함 
+-- CREATE OR REPLACE VIEW : 뷰가 없으면 새로 생성하고, 있으면 덮어쓰기함
+
+CREATE OR REPLACE VIEW V_EMP_DEPT90
+AS
+SELECT EMP_NAME, JOB_TITLE, SALARY
+FROM EMPLOYEE
+LEFT JOIN JOB USING (JOB_ID)
+LEFT JOIN DEPARTMENT USING (DEPT_ID);
+
+SELECT * FROM V_EMP_DEPT90;
+
+-- 실습 : 
+-- 직급이 '사원'인 직원들의 이름, 부서명, 직급명 조회하고 뷰에 저장함
+-- 뷰 이름 : V_EMP_DEPT_JOB
+CREATE OR REPLACE VIEW V_EMP_DEPT_JOB
+AS
+SELECT EMP_NAME, DEPT_NAME, JOB_TITLE
+FROM EMPLOYEE
+LEFT JOIN JOB USING (JOB_ID)
+LEFT JOIN DEPARTMENT USING (DEPT_ID)
+WHERE JOB_TITLE = '사원';
+
+SELECT * FROM V_EMP_DEPT_JOB;
+
+-- 뷰는 데이터를 가지고 있지 않음. : 가상 테이블임
+-- 뷰도 테이블처럼 객체로 조회 가능함
+SELECT COLUMN_NAME, DATA_TYPE, NULLABLE
+FROM USER_TAB_COLS
+WHERE TABLE_NAME = 'V_EMP_DEPT_JOB';
+
+-- 뷰 생성시 별칭 사용
+-- 1. 뷰 이름 옆에 (별칭, ...) : 전부 다 별칭 부여해야 함
+-- 2. 서브쿼리 SELECT 절에서 별칭 사용 : 선택적으로 적용
+
+CREATE OR REPLACE VIEW V_EMP_DEPT_JOB (ENM, DNM, TITLE)
+AS
+SELECT EMP_NAME, DEPT_NAME, JOB_TITLE
+FROM EMPLOYEE
+LEFT JOIN JOB USING (JOB_ID)
+LEFT JOIN DEPARTMENT USING (DEPT_ID)
+WHERE JOB_TITLE = '사원'; 
+
+SELECT * FROM V_EMP_DEPT_JOB;
+
+-- 2.
+CREATE OR REPLACE VIEW V_EMP_DEPT_JOB
+AS
+SELECT EMP_NAME ENAME, DEPT_NAME DNAME, JOB_TITLE JTITLE
+FROM EMPLOYEE
+LEFT JOIN JOB USING (JOB_ID)
+LEFT JOIN DEPARTMENT USING (DEPT_ID)
+WHERE JOB_TITLE = '사원'; 
+
+-- 반드시 별칭을 사용해야 하는 경우
+-- 서브쿼리 SELECT 절에 함수식 또는 계산식이 있으면 반드시 별칭 처리해야 함
+
+-- 직원들의 이름, 성별, 나이 조회하고 뷰에 저장
+-- 뷰이름 : V_EMP
+CREATE OR REPLACE VIEW V_EMP -- (ENM, GENDER, YEARS)
+AS
+SELECT EMP_NAME 이름, 
+        DECODE(SUBSTR(EMP_NO, 8, 1), '1', '남자', '3', '남자', '여자') 성별,
+        ROUND(MONTHS_BETWEEN(SYSDATE, 
+            TO_DATE(SUBSTR(EMP_NO, 1, 4), 'RRMM')) / 12, 0) 나이
+FROM EMPLOYEE;
+
+SELECT * FROM V_EMP;
+
+-- 뷰 관련 제약조건
+-- 뷰의 원래 목적은 아니지만, 뷰를 통한 DML 작업 가능함
+-- DML 의 작업 결과는 베이스 테이블의 데이터에 적용됨
+-- COMMIT / ROLLBACK 실행 필요함
+
+-- 뷰를 통한 DML 작업은 여러가지 제한이 있음
+-- 뷰 생성시에 DML 작업에 대한 제한을 설정할 수 있음
+-- WITH READ ONLY : 읽기 전용 뷰, 뷰를 통한 DML 작업 불가
+-- WITH CHECK OPTION : 뷰를 통한 DML 작업 가능함, 
+--              뷰를 통해 접근 가능한 데이터에만 DML 수행할 수 있음
+
+-- WITH READ ONLY
+CREATE OR REPLACE VIEW V_EMP
+AS
+SELECT * FROM EMPLOYEE
+WITH READ ONLY;
+
+-- 확인
+UPDATE V_EMP
+SET PHONE = NULL;  -- ERROR
+
+INSERT INTO V_EMP (EMP_ID, EMP_NAME, EMP_NO)
+VALUES ('789', '오현정', '811122-1234567');  -- 에러
+
+DELETE FROM V_EMP;  -- ERROR
+
+SELECT * FROM V_EMP;
+
+-- WITH CHECK OPTION
+-- 조건에 따라 INSERT / UPDATE 작업 제한
+-- DELETE 는 제한 없음
+
+CREATE OR REPLACE VIEW V_EMP
+AS
+SELECT EMP_ID, EMP_NAME, EMP_NO, MARRIAGE
+FROM EMPLOYEE
+WHERE MARRIAGE = 'N'
+WITH CHECK OPTION;
+
+-- 테스트
+INSERT INTO V_EMP (EMP_ID, EMP_NAME, EMP_NO, MARRIAGE)
+--VALUES ('789', '오현정', '811122-2234567', 'Y');  -- ERROR
+VALUES ('789', '오현정', '811122-2234567', 'N');
+
+COMMIT;
+
+-- 베이스 테이블에 기록 추가됨
+SELECT * FROM EMPLOYEE;
+
+SELECT * FROM V_EMP;
+
+UPDATE V_EMP
+SET MARRIAGE = 'Y'; -- ERROR
+
+-- 뷰를 생성할 때 사용한 WHERE 조건에 적용되는 범위에서만 수정이 허용됨
+UPDATE V_EMP
+SET EMP_ID = '000'
+WHERE EMP_ID = '789';
+
+SELECT * FROM EMPLOYEE;
+
+ROLLBACK;
+
+-- 뷰 사용
+-- 테이블을 대신해서 사용할 수 있음
+-- FROM 뷰이름 : 인라인 뷰
+CREATE OR REPLACE VIEW V_EMP_INFO
+AS
+SELECT EMP_NAME, DEPT_NAME, JOB_TITLE
+FROM EMPLOYEE
+LEFT JOIN JOB USING (JOB_ID)
+LEFT JOIN DEPARTMENT USING (DEPT_ID);
+
+SELECT * FROM V_EMP_INFO;
+
+SELECT EMP_NAME
+FROM V_EMP_INFO
+WHERE DEPT_NAME = '해외영업1팀'
+AND JOB_TITLE = '사원';
+
+-- 뷰 삭제
+-- DROP VIEW 뷰이름;
+DROP VIEW V_EMP;
+
+-- 뷰 옵션 : FORCE / NOFORCE (기본값)
+-- FORCE : 서브쿼리에서 사용된 테이블이 존재하지 않아도 뷰 생성됨
+CREATE OR REPLACE FORCE VIEW V_EMP
+AS
+SELECT TCODE, TNAME, TCONTENT
+FROM TTT;
+
+SELECT * FROM USER_VIEWS;
+
+CREATE OR REPLACE NOFORCE VIEW V_EMP
+AS
+SELECT TCODE, TNAME, TCONTENT
+FROM TTT;  -- ERROR
+
+-- 인라인 뷰 (INLINE VIEW) 
+-- 일반적으로 FROM 절에서 사용된 서브쿼리에 별칭을 붙인 것
+SELECT EMP_NAME, SALARY
+FROM (SELECT NVL(DEPT_ID, '00') DID, 
+                ROUND(AVG(SALARY), -3) DAVG
+       FROM EMPLOYEE
+       GROUP BY DEPT_ID) INLV  -- 인라인 뷰라고 함
+JOIN EMPLOYEE ON (NVL(DEPT_ID, '00') = INLV.DID)
+WHERE SALARY > INLV.DAVG
+ORDER BY 2 DESC;
+
+-- 또는 뷰 생성하고 사용
+CREATE OR REPLACE VIEW V_DEPT_SALAVG
+AS
+SELECT NVL(DEPT_ID, '00') DID, 
+        ROUND(AVG(SALARY), -3) DAVG
+FROM EMPLOYEE
+GROUP BY DEPT_ID;
+
+-- 뷰 사용
+SELECT EMP_NAME, SALARY
+FROM EMPLOYEE
+JOIN V_DEPT_SALAVG ON (NVL(DEPT_ID, '00') = DID)
+WHERE SALARY > DAVG
+ORDER BY 2 DESC;
+
+
+
+
+
+
+
+
