@@ -93,6 +93,17 @@ WHERE ROWNUM <= 3;
 
 --9. 작가 정보 테이블의 모든 등록일자 항목이 누락되어 있는 걸 발견하였다. 누락된 등록일자 값을 각 작가의
 --‘최초 출판도서의 발행일과 동일한 날짜’로 변경시키는 SQL 구문을 작성하시오. (COMMIT 처리할 것)
+UPDATE TB_WRITER TW
+SET REGIST_DATE = ( SELECT  F.MB
+                    FROM    ( SELECT ROW_NUMBER() OVER (PARTITION BY WRITER_NO ORDER BY MIN(BOOK_NO)) AS ROWN,
+                                     WRITER_NO , 
+                                     TO_DATE(SUBSTR(MIN(BOOK_NO),1,8), 'RR/MM/DD') MB
+                                     FROM   TB_BOOK_AUTHOR
+                                     GROUP BY WRITER_NO ) F
+                    WHERE F.ROWN = 1
+                          AND TW.WRITER_NO = F.WRITER_NO );
+	rollback;
+
 
 CREATE VIEW VW_DATE
 AS
