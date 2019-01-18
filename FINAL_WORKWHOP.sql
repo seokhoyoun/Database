@@ -52,7 +52,7 @@ FROM (
 WHERE ROWNUM = 1;
 --5. 저작 형태가 “옮김”에 해당하는 작가들이 총 몇 명인지 계산하는 SQL 구문을 작성하시오. (결과 헤더는
 --“작가(명)”으로 표시되도록 할 것)
-SELECT  COUNT(WRITER_NO) "작가(명)"
+SELECT  COUNT(DISTINCT WRITER_NO) "작가(명)"
 FROM    TB_BOOK_AUTHOR 
 WHERE   COMPOSE_TYPE = '옮김';
 
@@ -240,14 +240,41 @@ ORDER BY STOCK_QTY DESC, 1;
 --20. '아타트롤' 도서 작가와 역자를 표시하는 SQL 구문을 작성하시오. (결과 헤더는
 --‘도서명’,’저자’,’역자’로 표시할 것)
 
-SELECT 	BOOK_NM,
-		WRITER_NM
+SELECT 	BOOK_NM 도서명,
+		WRITER_NM 저자,
+        (
+        SELECT  WRITER_NM
+        FROM    TB_BOOK_TRANSLATOR
+        JOIN    TB_WRITER USING (WRITER_NO)
+        JOIN    TB_BOOK USING (BOOK_NO)
+        WHERE   BOOK_NM = '아타트롤'
+        ) 역자
 FROM		TB_BOOK_AUTHOR
 JOIN		TB_BOOK USING (BOOK_NO)
 JOIN		TB_WRITER USING (WRITER_NO)
 WHERE	BOOK_NM = '아타트롤';
 
+SELECT 	BOOK_NM 도서명,
+		W.WRITER_NM 저자,
+        WW.WRITER_NM 역자      
+FROM		TB_BOOK_AUTHOR BA
+JOIN		TB_BOOK B ON (B.BOOK_NO = BA.BOOK_NO)
+JOIN		TB_WRITER W ON (W.WRITER_NO = BA.WRITER_NO)
+JOIN        TB_BOOK_TRANSLATOR T ON (B.BOOK_NO = T.BOOK_NO)
+JOIN        TB_WRITER WW ON(WW.WRITER_NO = T.WRITER_NO)
+WHERE	    B.BOOK_NM = '아타트롤';
+
 --21. 현재 기준으로 최초 발행일로부터 만 30년이 경과되고, 재고 수량이 90권 이상인 도서에 대해 도서명, 재고
 --수량, 원래 가격, 20% 인하 가격을 표시하는 SQL 구문을 작성하시오. (결과 헤더는 “도서명”, “재고
 --수량”, “가격(Org)”, “가격(New)”로 표시할 것. 재고 수량이 많은 순, 할인 가격이 높은 순, 도서명
 --순으로 표시되도록 할 것)
+SELECT  BOOK_NM 도서명, STOCK_QTY 재고, PRICE "가격(ORG)", (PRICE * 0.8) "가격(NEW)"
+FROM    TB_BOOK
+WHERE   MONTHS_BETWEEN(SYSDATE, ISSUE_DATE)/12 > 30
+AND     STOCK_QTY >= 90
+ORDER BY 2 DESC, 3 DESC, 1;
+
+SELECT *
+FROM TB_BOOK
+WHERE BOOK_NM LIKE '창작과비평%';
+
